@@ -18,5 +18,4 @@ public interface BookService {
 
     void deleteBatch(List<Integer> ids);
 
-    void status(Integer id);
 }

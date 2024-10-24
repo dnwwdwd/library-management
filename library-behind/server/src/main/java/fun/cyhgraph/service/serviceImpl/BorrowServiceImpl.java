@@ -7,6 +7,7 @@ import fun.cyhgraph.context.BaseContext;
 import fun.cyhgraph.dto.LendReturnDTO;
 import fun.cyhgraph.dto.LendReturnPageDTO;
 import fun.cyhgraph.entity.*;
+import fun.cyhgraph.exception.BaseException;
 import fun.cyhgraph.exception.BorrowMaxException;
 import fun.cyhgraph.exception.BorrowTooLongException;
 import fun.cyhgraph.mapper.*;
@@ -64,14 +65,21 @@ public class BorrowServiceImpl implements BorrowService {
         if (amount >= maxBooks) {
             throw new BorrowMaxException(UserConstant.BORROW_MAX);
         }
-        // 3、借书需要将对应书籍的状态设置为1，表示已借出
-        // 3.1 先获取对应借出的书籍
         Integer bId = lendReturn.getBId();
         Book book = bookMapper.getById(bId);
-        // 3.2 更新状态为1
-        book.setStatus(1);
+        // 2.4 如果书籍库存小于 1，抛异常
+        if (book.getStock() < 1) {
+            throw new BaseException("该书籍库存不足，请等待他人归还后再借");
+        }
+        // 2.5 已经借了，不允许再借
+        if (borrowMapper.isLentOrReturned(0, bId, rId) > 0) {
+            throw new BaseException("此人已借了该书籍");
+        }
+        // 3、借书需要将对应书籍的库存减1
+        // 3.1 库存减1
+        book.setStock(book.getStock() - 1);
         bookMapper.update(book);
-        // 3.4 插入借还书记录
+        // 3.2 插入借还书记录
         borrowMapper.insert(lendReturn);
     }
 
@@ -126,11 +134,11 @@ public class BorrowServiceImpl implements BorrowService {
         Book book = bookMapper.getById(lendReturnDTO.getBId());
         log.info("书籍归还状态：{}", lendReturnDTO.getStatus());
         if (lendReturnDTO.getStatus() == 1 || lendReturnDTO.getStatus() == 4) {
-            // 可以归还，对应书籍的status设为0
-            book.setStatus(0);
+            // 可以归还，对应书籍的库存减1
+            book.setStock(book.getStock() + 1);
         } else {
-            // 没有归还，对应书籍的status设为1
-            book.setStatus(1);
+            // 没有归还，对应书籍的库存不变
+            book.setStock(book.getStock());
         }
         // 更新书籍状态和借书记录
         bookMapper.update(book);

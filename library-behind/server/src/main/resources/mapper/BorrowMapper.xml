@@ -92,4 +92,18 @@
         </foreach>
     </delete>
 
+    <select id="isLentOrReturned" resultType="java.lang.Integer">
+        select count(*) from lend_return
+        <where>
+            <if test="rId != null">
+                and r_id = #{rId}
+            </if>
+            <if test="bId != null">
+                and b_id = #{bId}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
 </mapper>

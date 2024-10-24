@@ -22,6 +22,7 @@ public class BookDTO implements Serializable {
     private Integer pageNumber;
     private String keywords;
     private String notes;
+    private Integer stock;
     private Integer categoryId;
 
 }

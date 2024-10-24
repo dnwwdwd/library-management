@@ -23,7 +23,7 @@ public class Book implements Serializable {
     private Integer pageNumber;
     private String keywords;
     private LocalDateTime createTime;
-    private Integer status;
+    private Integer stock; // 库存
     private String notes;
     private Integer categoryId;
 

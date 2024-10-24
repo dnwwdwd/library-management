@@ -27,6 +27,8 @@ public interface BorrowMapper {
 
     void deleteBatch(List<Integer> ids);
 
+    int isLentOrReturned(int status, int bId, int rId);
+
     List<Integer> getBIdsByDate(LocalDate begin);
 
     Integer getBookAmount(LocalDate begin, Integer bId);

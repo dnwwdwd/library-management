@@ -23,7 +23,7 @@ export const getBookPageAPI = (params: any) => {
 export const addBookAPI = (params: any) => {
   console.log('新增书籍API', params)
   return request({
-    url: '/book',
+    url: '/book/add',
     method: 'post',
     data: params
   })
@@ -53,18 +53,6 @@ export const updateBookAPI = (params: any) => {
     url: '/book',
     method: 'put',
     data: { ...params }
-  })
-}
-
-/**
- * 更新书籍状态
- * @param params 
- * @returns 
- */
-export const updateBookStatusAPI = (id: number) => {
-  return request({
-    url: `/book/status/${id}`,
-    method: 'put',
   })
 }
 

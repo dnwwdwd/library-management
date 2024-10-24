@@ -15,9 +15,6 @@
             <if test="name != null and name != ''">
                 and name like concat('%', #{name}, '%')
             </if>
-            <if test="status != null and status != ''">
-                and status = #{status}
-            </if>
             <if test="categoryId != null and categoryId != ''">
                 and category_id = #{categoryId}
             </if>
@@ -34,7 +31,7 @@
             <if test="price != null">price = #{price},</if>
             <if test="pageNumber != null">page_number = #{pageNumber},</if>
             <if test="keywords != null">keywords = #{keywords},</if>
-            <if test="status != null">status = #{status},</if>
+            <if test="stock != null">stock = #{stock},</if>
             <if test="notes != null">notes = #{notes},</if>
             <if test="categoryId != null">category_id = #{categoryId}</if>
         </set>

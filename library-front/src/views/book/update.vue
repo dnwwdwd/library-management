@@ -17,6 +17,7 @@ interface BookDTO {
   pageNumber: number
   keywords: string
   notes: string
+  stock: number
 }
 interface Category {
   id: number
@@ -38,6 +39,7 @@ const form = reactive<BookDTO>({
   price: 0,
   pageNumber: 0,
   keywords: '',
+  stock: 0,
   notes: ''
 })
 const isValidForm = ref()
@@ -159,6 +161,9 @@ init()
       </el-form-item>
       <el-form-item label="页码数" :label-width="formLabelWidth" prop="pageNumber">
         <el-input v-model="form.pageNumber" autocomplete="off" />
+      </el-form-item>
+      <el-form-item label="库存" :label-width="formLabelWidth" prop="stock">
+        <el-input v-model="form.stock" autocomplete="off" />
       </el-form-item>
       <el-form-item label="关键词" :label-width="formLabelWidth" prop="keywords">
         <el-input v-model="form.keywords" autocomplete="off" />

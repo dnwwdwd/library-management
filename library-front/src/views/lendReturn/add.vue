@@ -365,6 +365,7 @@ const add_btn = async () => {
         <el-table-column prop="author" label="作者" />
         <el-table-column prop="press" label="出版社" />
         <el-table-column prop="price" label="价格" />
+        <el-table-column prop="stock" label="库存" />
         <el-table-column prop="keywords" label="关键词" />
         <template #empty>
           <el-empty description=" 没有数据" />

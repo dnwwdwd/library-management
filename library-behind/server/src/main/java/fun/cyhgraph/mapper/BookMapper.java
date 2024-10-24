@@ -17,10 +17,10 @@ public interface BookMapper {
 
     @AutoFill(value = OperationType.INSERT)
     @Insert("insert into book (name, category_id, author, press, publish_date, " +
-            "price, page_number, keywords, create_time, status, notes) " +
+            "price, page_number, keywords, create_time, stock, notes) " +
             "VALUES " +
             "(#{name}, #{categoryId}, #{author}, #{press}, #{publishDate}," +
-            "#{price}, #{pageNumber}, #{keywords}, #{createTime}, #{status}, #{notes})")
+            "#{price}, #{pageNumber}, #{keywords}, #{createTime}, #{stock}, #{notes})")
     void insert(Book book);
 
     Page<Book> page(BookPageDTO bookPageDTO);
@@ -31,9 +31,6 @@ public interface BookMapper {
     void update(Book book);
 
     void deleteBatch(List<Integer> ids);
-
-    @Update("update book set status = IF(status = 1, 0, 1) where id = #{id}")
-    void status(Integer id);
 
     @Select("select count(id) from book where category_id = #{id}")
     Integer sumByCategoryId(Integer id);

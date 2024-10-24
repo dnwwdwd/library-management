@@ -145,3 +145,5 @@ INSERT INTO librarymanagement.user (id, name, password, role, category_id, sex, 
 INSERT INTO librarymanagement.user (id, name, password, role, category_id, sex, address, phone, email, notes, create_time) VALUES (3, 'burger', 'e10adc3949ba59abbe56e057f20f883e', 'USER', 1, 0, '武汉', '12348293', '2832u83@qq.com', '无', '2024-10-23 15:49:04');
 INSERT INTO librarymanagement.user (id, name, password, role, category_id, sex, address, phone, email, notes, create_time) VALUES (4, 'xiaozhao', 'e10adc3949ba59abbe56e057f20f883e', 'USER', 1, 1, '南京', '12456633', '34412@qq.com', '无123', '2024-10-24 12:45:46');
 INSERT INTO librarymanagement.user (id, name, password, role, category_id, sex, address, phone, email, notes, create_time) VALUES (5, 'xiaohe', 'e10adc3949ba59abbe56e057f20f883e', 'USER', 1, 1, '淮安', '38419194', '234349405@example.com', '无', '2024-10-24 12:51:32');
+
+select distinct name from book;

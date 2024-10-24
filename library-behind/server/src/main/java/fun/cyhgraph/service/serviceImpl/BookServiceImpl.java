@@ -27,7 +27,6 @@ public class BookServiceImpl implements BookService {
     public void addBook(BookDTO bookDTO) {
         Book book = new Book();
         BeanUtils.copyProperties(bookDTO, book);
-        book.setStatus(0); // 刚开始添加，书还没被借出
         bookMapper.insert(book);
     }
 
@@ -59,14 +58,6 @@ public class BookServiceImpl implements BookService {
         Book book = new Book();
         BeanUtils.copyProperties(bookDTO, book);
         bookMapper.update(book);
-    }
-
-    /**
-     * 根据id修改书籍状态
-     * @param id
-     */
-    public void status(Integer id) {
-        bookMapper.status(id);
     }
 
     /**
