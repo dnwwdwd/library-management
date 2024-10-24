@@ -3,7 +3,7 @@ import { reactive, ref } from 'vue'
 import { getBookCategoryAPI } from '@/api/bookCategory'
 import { getReaderCategoryAPI } from '@/api/readerCategory'
 import { getBookPageAPI } from '@/api/book'
-import { getReaderPageAPI } from '@/api/reader'
+import { getReaderPageAPI } from '@/api/user'
 import { addBorrowAPI } from '@/api/lendReturn'
 import { ElMessage, ElTable } from 'element-plus'
 
@@ -289,9 +289,6 @@ const add_btn = async () => {
           <el-date-picker v-model="form.lendDate" type="date" :disabled-date="disabledDateLend" placeholder="请选择借书日期"
             style="width: 100%" />
         </el-form-item>
-        <!-- <el-form-item label="还书日期" label-width="100px" prop="returnDate">
-          <el-date-picker v-model="form.returnDate" type="date" placeholder="请选择还书日期" style="width: 100%" />
-        </el-form-item> -->
         <el-button style="margin: 0 60px 15px; width:120px" round type="primary" @click="add_btn()">添加借阅记录</el-button>
       </el-form>
     </div>
@@ -310,12 +307,12 @@ const add_btn = async () => {
       <el-table ref="singleReaderRef" :data="readerList" highlight-current-row stripe border
         @current-change="singleReaderChange" style="width: 90%; height: 350px;">
         <el-table-column prop="id" label="读者号" />
-        <el-table-column prop="name" label="姓名" />
+        <el-table-column prop="name" label="账号" />
         <el-table-column prop="categoryId" label="所属分类">
           <template #default="scope">
             <!-- 遍历categoryList，找到categoryId对应的name，  !.表示必然存在id，因为添加时就是根据已有id添加的 -->
             <span v-if="readerCategoryList.length > 0">
-              {{ readerCategoryList.find(item => item.id === scope.row.categoryId)!.name }}
+              {{ readerCategoryList.find(item => item.id === scope.row.categoryId)?.name || '未知分类' }}
             </span>
             <span v-else>
               数据加载中...

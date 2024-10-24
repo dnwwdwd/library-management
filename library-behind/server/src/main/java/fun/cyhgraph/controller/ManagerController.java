@@ -9,8 +9,8 @@ import fun.cyhgraph.result.Result;
 import fun.cyhgraph.service.ManagerService;
 import fun.cyhgraph.utils.JwtUtil;
 import fun.cyhgraph.vo.ManagerLoginVO;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -21,9 +21,10 @@ import java.util.Map;
 @Slf4j
 public class ManagerController {
 
-    @Autowired
+    @Resource
     private ManagerService managerService;
-    @Autowired
+
+    @Resource
     private JwtProperties jwtProperties;
 
     /**
@@ -49,11 +50,11 @@ public class ManagerController {
         // 上面的没抛异常，正常来到这里，说明登录成功
         // claims就是用户数据payload部分
         Map<String, Object> claims = new HashMap<>(); // jsonwebtoken包底层就是Map<String, Object>格式，不能修改！
-        claims.put(JwtClaimsConstant.MANAGER_ID, manager.getId());
+        claims.put(JwtClaimsConstant.USER_ID, manager.getId());
         // 需要加个token给他，再返回响应
         String token = JwtUtil.createJWT(
-                jwtProperties.getManagerSecretKey(),
-                jwtProperties.getManagerTtl(),
+                jwtProperties.getUserSecretKey(),
+                jwtProperties.getUserTtl(),
                 claims);
         ManagerLoginVO managerLoginVO = ManagerLoginVO.builder()
                 .id(manager.getId())
@@ -80,7 +81,7 @@ public class ManagerController {
      * @param managerDTO
      * @return
      */
-    @PutMapping
+    @PutMapping("/update")
     public Result update(@RequestBody ManagerDTO managerDTO){
         log.info("修改后的用户信息：{}", managerDTO);
         managerService.update(managerDTO);

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { getReaderCategoryAPI } from '@/api/readerCategory'
-import { getReaderPageAPI, addReaderAPI, deleteReadersAPI } from '@/api/reader'
+import {getReaderPageAPI, addReaderAPI, deleteReadersAPI, sealReadersAPI, unsealReadersAPI} from '@/api/user'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, ElTable } from 'element-plus'
 
@@ -10,10 +10,10 @@ import { ElMessage, ElMessageBox, ElTable } from 'element-plus'
 interface Reader {
   id: number
   name: string
+  password: string;
   categoryId: number
   sex: number
-  wAddress: string
-  hAddress: string
+  address: string
   phone: string
   email: string
   createTime: string
@@ -23,8 +23,7 @@ interface ReaderDTO {
   name: string
   categoryId: number
   sex: number
-  wAddress: string
-  hAddress: string
+  address: string
   phone: string
   email: string
   notes: string
@@ -40,12 +39,12 @@ const formLabelWidth = '140px'
 
 // ------ 数据 ------
 // dialog中的表单信息
-const form = reactive<ReaderDTO>({
+const form = reactive({
   name: '',
+  password: '',
   categoryId: 1,
   sex: 1,
-  wAddress: '',
-  hAddress: '',
+  address: '',
   phone: '',
   email: '',
   notes: '',
@@ -53,7 +52,7 @@ const form = reactive<ReaderDTO>({
 // 当前页的书籍列表
 const readerList = ref<Reader[]>([])
 // 书籍id对应的分类列表，即categoryId字段不能只展示id值，应该根据id查询到对应的分类名进行回显
-const categoryList = ref<Category[]>([])
+const categoryList = ref<Category[]>([]);
 // 分页参数
 const pageData = reactive({
   name: '',
@@ -76,12 +75,15 @@ const sexList = [
 
 const isValidForm = ref()
 const total = ref(0)
-const multiTableRef = ref<InstanceType<typeof ElTable>>()
-const multiSelection = ref<Reader[]>([])
+const multiTableRef = ref<InstanceType<typeof ElTable>>();
+const multiSelection = ref<Reader[]>([]);
 
 // 表单校验
 const rules = {
   name: [
+    { required: true, trigger: 'blur', message: '不能为空' },
+  ],
+  password: [
     { required: true, trigger: 'blur', message: '不能为空' },
   ],
   categoryId: [
@@ -90,15 +92,11 @@ const rules = {
   sex: [
     { required: true, trigger: 'blur', message: '不能为空' },
   ],
-  wAddress: [
-    { required: true, trigger: 'blur', message: '不能为空' },
-  ],
-  hAddress: [
+  address: [
     { required: true, trigger: 'blur', message: '不能为空' },
   ],
   phone: [
     { required: true, trigger: 'blur', message: '不能为空' },
-    { pattern: /^[1][3,4,5,7,8][0-9]{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' },
   ],
   email: [
     { required: true, trigger: 'blur', message: '不能为空' },
@@ -112,7 +110,7 @@ const rules = {
 const init = async () => {
   const { data: res_category } = await getReaderCategoryAPI({ page: 1, pageSize: 100 })   // 分页加载员工
   console.log(res_category)
-  categoryList.value = res_category.data.records
+  categoryList.value = res_category.data.records;
   console.log('categoryList: ', categoryList.value)
 }
 // 刷新页面的分页数据
@@ -220,6 +218,64 @@ const delete_btn = async (row: any) => {
     })
 }
 
+const seal_btn = async (row: any) => {
+  ElMessageBox.confirm(
+      '是否封禁该借阅人？',
+      'Warning',
+      {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }
+  )
+      .then(async () => {
+        console.log('要封禁的行数据')
+        console.log(row)
+        await sealReadersAPI(row.id)
+        // 删除后刷新页面，更新数据
+        showPageList()
+        ElMessage({
+          type: 'success',
+          message: '封禁成功',
+        })
+      })
+      .catch(() => {
+        ElMessage({
+          type: 'info',
+          message: '取消封禁',
+        })
+      })
+};
+
+const unseal_btn = async (row: any) => {
+  ElMessageBox.confirm(
+      '是否解封该借阅人？',
+      'Warning',
+      {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }
+  )
+      .then(async () => {
+        console.log('要解封的行数据')
+        console.log(row)
+        await unsealReadersAPI(row.id)
+        // 删除后刷新页面，更新数据
+        showPageList()
+        ElMessage({
+          type: 'success',
+          message: '解封成功',
+        })
+      })
+      .catch(() => {
+        ElMessage({
+          type: 'info',
+          message: '取消解封',
+        })
+      })
+};
+
 // 批量删除借阅人
 const deleteBatch = (row?: any) => {
   console.log('要删除的行数据')
@@ -280,32 +336,32 @@ const deleteBatch = (row?: any) => {
 <template>
   <el-dialog v-model="dialogFormVisible" title="添加读者" width="500">
     <el-form :model="form" :rules="rules" ref="isValidForm">
-      <el-form-item label="name" :label-width="formLabelWidth" prop="name">
+      <el-form-item label="账号" :label-width="formLabelWidth" prop="name">
         <el-input v-model="form.name" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="categoryId" :label-width="formLabelWidth" prop="categoryId">
+      <el-form-item label="密码" :label-width="formLabelWidth" prop="password">
+        <el-input v-model="form.password" autocomplete="off" />
+      </el-form-item>
+      <el-form-item label="读者分类" :label-width="formLabelWidth" prop="categoryId">
         <el-select clearable v-model="form.categoryId" placeholder="选择分类类型">
           <el-option v-for="item in categoryList" :key="item.id" :label="item.name" :value="item.id" />
         </el-select>
       </el-form-item>
-      <el-form-item label="sex" :label-width="formLabelWidth" prop="sex">
+      <el-form-item label="性别" :label-width="formLabelWidth" prop="sex">
         <el-select clearable v-model="form.sex" placeholder="选择性别">
           <el-option v-for="item in sexList" :key="item.id" :label="item.name" :value="item.id" />
         </el-select>
       </el-form-item>
-      <el-form-item label="wAddress" :label-width="formLabelWidth" prop="wAddress">
-        <el-input v-model="form.wAddress" autocomplete="off" />
+      <el-form-item label="家庭住址" :label-width="formLabelWidth" prop="wAddress">
+        <el-input v-model="form.address" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="hAddress" :label-width="formLabelWidth" prop="hAddress">
-        <el-input v-model="form.hAddress" autocomplete="off" />
-      </el-form-item>
-      <el-form-item label="phone" :label-width="formLabelWidth" prop="phone">
+      <el-form-item label="手机号" :label-width="formLabelWidth" prop="phone">
         <el-input v-model="form.phone" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="email" :label-width="formLabelWidth" prop="email">
+      <el-form-item label="邮箱" :label-width="formLabelWidth" prop="email">
         <el-input v-model="form.email" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="notes" :label-width="formLabelWidth" prop="notes">
+      <el-form-item label="备注" :label-width="formLabelWidth" prop="notes">
         <el-input v-model="form.notes" autocomplete="off" />
       </el-form-item>
     </el-form>
@@ -336,11 +392,10 @@ const deleteBatch = (row?: any) => {
       style="width: 100%">
       <el-table-column type="selection" width="55" />
       <el-table-column prop="id" label="读者号" />
-      <el-table-column prop="name" label="姓名" />
+      <el-table-column prop="name" label="账号" />
       <el-table-column prop="categoryId" label="所属分类" width="100px">
         <template #default="scope">
-          <!-- 遍历categoryList，找到categoryId对应的name，  !.表示必然存在id，因为添加时就是根据已有id添加的 -->
-          {{ categoryList.find(item => item.id === scope.row.categoryId)!.name }}
+          {{ categoryList.find(item => item.id === scope.row.categoryId)?.name || '未知分类' }}
         </template>
       </el-table-column>
       <el-table-column prop="sex" label="性别">
@@ -348,17 +403,18 @@ const deleteBatch = (row?: any) => {
           {{scope.row.sex === 1 ? '男' : '女'}}
         </template>
       </el-table-column>
-      <el-table-column prop="wAddress" label="工作单位" width="120px" />
-      <el-table-column prop="hAddress" label="家庭住址" width="120px" />
+      <el-table-column prop="address" label="家庭住址" width="120px" />
       <el-table-column prop="phone" label="电话" width="120px" />
       <el-table-column prop="email" label="邮箱" width="120px" />
       <el-table-column prop="createTime" label="创建时间" width="120px" />
       <el-table-column prop="notes" label="备注" width="150px" />
-      <el-table-column label="操作" width="200px" fixed="right">
+      <el-table-column label="操作" width="300px" fixed="right">
         <!-- scope 的父组件是 el-table -->
         <template #default="scope">
           <el-button @click="update_btn(scope.row)" type="primary">修改</el-button>
           <el-button @click="delete_btn(scope.row)" type="danger">删除</el-button>
+          <el-button @click="seal_btn(scope.row)" type="danger" v-if="!scope.row.sealed">封禁</el-button>
+          <el-button @click="unseal_btn(scope.row)" type="danger" v-if="scope.row.sealed">解封</el-button>
         </template>
       </el-table-column>
       <template #empty>

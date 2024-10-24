@@ -3,7 +3,7 @@ import { reactive, ref } from 'vue'
 import { getBookCategoryAPI } from '@/api/bookCategory'
 import { getReaderCategoryAPI } from '@/api/readerCategory'
 import { getBookByIdAPI } from '@/api/book'
-import { getReaderByIdAPI } from '@/api/reader'
+import { getReaderByIdAPI } from '@/api/user'
 import { getBorrowByIdAPI, updateBorrowAPI } from '@/api/lendReturn'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -302,7 +302,7 @@ const submit = async () => {
         type: 'success',
       })
       router.push({
-        path: '/lendReturn',
+        path: '/lendReturn/me',
       })
     } else {
       console.log('form not valid!')
@@ -315,7 +315,7 @@ const submit = async () => {
 // 取消修改
 const cancel = () => {
   router.push({
-    path: '/lendReturn',
+    path: '/lendReturn/me',
   })
 }
 </script>
@@ -359,11 +359,11 @@ const cancel = () => {
 
     <el-table :data="[selectedReader]" highlight-current-row stripe border style="width: 90%; height: 120px;">
       <el-table-column prop="id" label="读者号" width="80px" />
-      <el-table-column prop="name" label="姓名" />
+      <el-table-column prop="name" label="账号" />
       <el-table-column prop="categoryId" label="所属分类">
         <template #default="scope">
           <span v-if="readerCategoryList.length > 0">
-            {{ readerCategoryList.find(item => item.id === scope.row.categoryId)!.name }}
+            {{ readerCategoryList.find(item => item.id === scope.row.categoryId)?.name }}
           </span>
           <span v-else>
             数据加载中...
@@ -390,7 +390,7 @@ const cancel = () => {
       <el-table-column prop="categoryId" label="所属分类">
         <template #default="scope">
           <span v-if="bookCategoryList.length > 0">
-            {{ bookCategoryList.find(item => item.id === scope.row.categoryId)!.name }}
+            {{ bookCategoryList.find(item => item.id === scope.row.categoryId)?.name }}
           </span>
           <span v-else>
             数据加载中...
@@ -423,7 +423,7 @@ const cancel = () => {
       <el-table :data="readerList" highlight-current-row stripe border @current-change="singleReaderChange"
         style="width: 90%; height: 400px;">
         <el-table-column prop="id" label="读者号" />
-        <el-table-column prop="name" label="姓名" />
+        <el-table-column prop="name" label="账号" />
         <el-table-column prop="categoryId" label="所属分类">
           <template #default="scope">
             <span v-if="readerCategoryList.length > 0">

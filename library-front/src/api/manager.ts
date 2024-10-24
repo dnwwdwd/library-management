@@ -28,15 +28,3 @@ export const registerAPI = (params: any) => {
   })
 }
 
-/**
- * 修改密码接口
- * @returns 
- */
-export const updateAPI = (params: any) => {
-  console.log('修改密码')
-  return request({
-    url: '/manager',
-    method: 'put',
-    data: { ...params }
-  })
-}

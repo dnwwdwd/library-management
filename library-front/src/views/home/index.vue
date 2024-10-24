@@ -118,7 +118,7 @@ const loadBookPie = async () => {
   const bookPieOption = {
     title: {
       text: '不同类别图书数量统计',
-      // subtext: 'my layout',
+      // subtext: '',
       left: 'center'
     },
     tooltip: {
@@ -158,7 +158,7 @@ const loadReaderPie = async () => {
   const readerPieOption = {
     title: {
       text: '不同类别图书数量统计',
-      subtext: 'my layout',
+      subtext: '',
       left: 'center'
     },
     tooltip: {
@@ -196,7 +196,7 @@ const loadLendChart = async () => {
   const lendOption = {
     title: {
       text: '近期借书数量统计',
-      subtext: 'my layout',
+      subtext: '',
       left: 'center'
     },
     xAxis: {
@@ -259,7 +259,7 @@ const loadReturnChart = async () => {
   const returnOption = {
     title: {
       text: '近期还书数量统计',
-      subtext: 'my layout',
+      subtext: '',
       left: 'center'
     },
     xAxis: {
@@ -323,7 +323,7 @@ const loadBookTopChart = async () => {
   const bookTopOption = {
     title: {
       text: '近期人气借阅书籍Top排行榜',
-      subtext: 'my layout',
+      subtext: '',
       left: 'center'
     },
     yAxis: {
@@ -382,7 +382,7 @@ const loadReaderTopChart = async () => {
   const readerTopOption = {
     title: {
       text: '近期读者借书Top排行榜',
-      subtext: 'my layout',
+      subtext: '',
       left: 'center'
     },
     yAxis: {

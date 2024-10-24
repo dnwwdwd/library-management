@@ -170,19 +170,19 @@ const delete_btn = (row: any) => {
 <template>
   <el-dialog v-model="dialogFormVisible" title="添加图书分类" class="my-info-dialog">
     <el-form :model="form" :rules="rules" ref="isValidForm">
-      <el-form-item label="name" :label-width="formLabelWidth" prop="name">
+      <el-form-item label="分类名" :label-width="formLabelWidth" prop="name">
         <el-input v-model="form.name" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="amount" :label-width="formLabelWidth" prop="amount">
+      <el-form-item label="最大借书数量" :label-width="formLabelWidth" prop="amount">
         <el-input v-model="form.amount" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="lendPeriod" :label-width="formLabelWidth" prop="lendPeriod">
+      <el-form-item label="一次借书的期限天数" :label-width="formLabelWidth" prop="lendPeriod">
         <el-input v-model="form.lendPeriod" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="effectPeriod" :label-width="formLabelWidth" prop="effectPeriod">
+      <el-form-item label="借书有效日期" :label-width="formLabelWidth" prop="effectPeriod">
         <el-date-picker v-model="form.effectPeriod" type="date" placeholder="请选择有效借书日期" style="width: 100%" />
       </el-form-item>
-      <el-form-item label="notes" :label-width="formLabelWidth" prop="notes">
+      <el-form-item label="备注" :label-width="formLabelWidth" prop="notes">
         <el-input v-model="form.notes" type="textarea" autocomplete="off" />
       </el-form-item>
     </el-form>
@@ -208,7 +208,7 @@ const delete_btn = (row: any) => {
       <el-table-column prop="id" label="id" />
       <el-table-column prop="name" label="分类名" />
       <el-table-column prop="amount" label="最大借书数量" width="120px" />
-      <el-table-column prop="lendPeriod" label="借书时间" />
+      <el-table-column prop="lendPeriod" label="一次借书的期限天数" />
       <el-table-column prop="effectPeriod" label="借书有效期" width="120px" />
       <el-table-column prop="notes" label="备注" width="300px" />
       <el-table-column label="操作" width="200px">

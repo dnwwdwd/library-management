@@ -7,8 +7,8 @@ import fun.cyhgraph.vo.BookCategoryVO;
 import fun.cyhgraph.vo.LendReturnReportVO;
 import fun.cyhgraph.vo.ReaderCategoryVo;
 import fun.cyhgraph.vo.TopVO;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.statement.select.Top;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,16 +25,21 @@ public class ChartServiceImpl implements ChartService {
 
     @Autowired
     private ChartMapper chartMapper;
+
     @Autowired
     private BookCategoryMapper bookCategoryMapper;
+
     @Autowired
     private BookMapper bookMapper;
+
     @Autowired
     private ReaderCategoryMapper readerCategoryMapper;
-    @Autowired
-    private ReaderMapper readerMapper;
+
     @Autowired
     private BorrowMapper borrowMapper;
+
+    @Resource
+    private UserMapper userMapper;
 
 
     /**
@@ -66,7 +71,7 @@ public class ChartServiceImpl implements ChartService {
         List<Integer> ids = readerCategoryMapper.getIds();
         List<Integer> readerNumList = new ArrayList<>();
         for (Integer id : ids) {
-            Integer amount = readerMapper.sumByCategoryId(id);
+            Integer amount = userMapper.sumByCategoryId(id);
             amount = amount == null ? 0 : amount;
             readerNumList.add(amount);
         }
@@ -184,7 +189,7 @@ public class ChartServiceImpl implements ChartService {
         // 创建一个列表来保存读者信息
         List<TopInfo> readerInfoList = new ArrayList<>();
         for (Integer rId : rIds){
-            String name = readerMapper.getById(rId).getName();
+            String name = userMapper.getUserById(rId).getName();
             Integer amount = borrowMapper.getReaderAmount(begin, rId);
             readerInfoList.add(new TopInfo(name, amount));
         }

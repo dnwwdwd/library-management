@@ -25,7 +25,7 @@ public class BorrowController {
      * @param lendReturnDTO
      * @return
      */
-    @PostMapping
+    @PostMapping("/add")
     public Result addBorrow(@RequestBody LendReturnDTO lendReturnDTO){
         log.info("新增借还书记录：{}", lendReturnDTO);
         borrowService.addBorrow(lendReturnDTO);
@@ -41,6 +41,18 @@ public class BorrowController {
     public Result<PageResult> page(LendReturnPageDTO lendReturnPageDTO){
         log.info("分页查询借还书记录的条件：{}", lendReturnPageDTO);
         PageResult pageResult = borrowService.page(lendReturnPageDTO);
+        return Result.success(pageResult);
+    }
+
+    /**
+     * 分页查询借还书记录
+     * @param lendReturnPageDTO
+     * @return
+     */
+    @GetMapping("/page/my")
+    public Result<PageResult> pageMy(LendReturnPageDTO lendReturnPageDTO){
+        log.info("分页查询借还书记录的条件：{}", lendReturnPageDTO);
+        PageResult pageResult = borrowService.pageMy(lendReturnPageDTO);
         return Result.success(pageResult);
     }
 

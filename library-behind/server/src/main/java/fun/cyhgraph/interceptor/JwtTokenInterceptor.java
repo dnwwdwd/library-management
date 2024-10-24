@@ -3,8 +3,10 @@ package fun.cyhgraph.interceptor;
 import fun.cyhgraph.constant.JwtClaimsConstant;
 import fun.cyhgraph.context.BaseContext;
 import fun.cyhgraph.properties.JwtProperties;
+import fun.cyhgraph.service.UserService;
 import fun.cyhgraph.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,6 +27,9 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
     @Autowired
     private JwtProperties jwtProperties;
 
+    @Resource
+    private UserService userService;
+
     /**
      * 对controller资源进行请求之前，需要校验jwt
      *
@@ -41,14 +46,18 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
             return true;
         }
         // 1、从请求头中获取令牌
-        String token = request.getHeader(jwtProperties.getManagerTokenName());
+        String token = request.getHeader(jwtProperties.getUserTokenName());
         System.out.println("-------------------------------- token -------------------------------- " + token);
         // 2、校验令牌
         try {
             log.info("jwt校验:{}", token);
-            Claims claims = JwtUtil.parseJWT(jwtProperties.getManagerSecretKey(), token);
-            Integer EmployeeId = Integer.valueOf(claims.get(JwtClaimsConstant.MANAGER_ID).toString());
+            Claims claims = JwtUtil.parseJWT(jwtProperties.getUserSecretKey(), token);
+            Integer EmployeeId = Integer.valueOf(claims.get(JwtClaimsConstant.USER_ID).toString());
             log.info("当前用户id：{}", EmployeeId);
+            if (userService.isSealed(EmployeeId)) {
+                response.setStatus(403);
+                return false;
+            }
             // 将id存到当前线程thread的局部空间里面，并在controller,service或者其他地方进行调用获取id
             BaseContext.setCurrentId(EmployeeId);
             // 3、通过，放行

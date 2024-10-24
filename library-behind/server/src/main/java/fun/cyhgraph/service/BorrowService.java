@@ -17,4 +17,6 @@ public interface BorrowService {
     void update(LendReturnDTO lendReturnDTO);
 
     void delete(List<Integer> ids);
+
+    PageResult pageMy(LendReturnPageDTO lendReturnPageDTO);
 }

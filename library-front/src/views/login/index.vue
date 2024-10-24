@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { loginAPI } from '@/api/manager'
+import { loginAPI } from '@/api/user'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { useManagerStore } from '@/store'
+import { useUserStore } from '@/store'
 
-const store = useManagerStore()
+const store = useUserStore()
 
 const form = ref({
   name: '',
@@ -41,7 +41,7 @@ const loginFn = async () => {
     // 登录成功，提示用户
     ElMessage.success('登录成功')
     // 把后端返回的token存储到Pinia里
-    store.managerInfo = res.data
+    store.userInfo = res.data
     // 跳转到首页
     router.push('/')
   } else {

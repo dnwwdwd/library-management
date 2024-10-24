@@ -5,6 +5,7 @@ import fun.cyhgraph.dto.LendReturnPageDTO;
 import fun.cyhgraph.entity.LendReturn;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.time.LocalDate;
@@ -46,4 +47,6 @@ public interface BorrowMapper {
      * @return
      */
     Integer getReaderHad(LendReturn lendReturn);
+
+    Page<LendReturn> pageMy(LendReturnPageDTO lendReturnPageDTO, @Param("userId") int userId);
 }

@@ -35,7 +35,7 @@ export const addReaderAPI = (params: any) => {
  */
 export const getReaderByIdAPI = (id: number) => {
   return request({
-    url: `/reader/${id}`,
+    url: `/user/${id}`,
     method: 'get',
   })
 }
@@ -49,8 +49,8 @@ export const updateReaderAPI = (params: any) => {
   console.log(params)
   console.log({ ...params })
   return request({
-    url: '/reader',
-    method: 'put',
+    url: '/user/update',
+    method: 'post',
     data: { ...params }
   })
 }

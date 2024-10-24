@@ -1,13 +1,12 @@
 package fun.cyhgraph.handler;
 
-import fun.cyhgraph.constant.MessageConstant;
+import fun.cyhgraph.constant.UserConstant;
 import fun.cyhgraph.exception.BaseException;
 import fun.cyhgraph.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.sql.SQLDataException;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 
@@ -33,10 +32,10 @@ public class GlobalExceptionHandler {
         if (message.contains("Duplicate entry")){
             String[] split = message.split(" ");
             String username = split[2];
-            String msg = username + MessageConstant.ALREADY_EXiST;
+            String msg = username + UserConstant.ALREADY_EXiST;
             return Result.error(msg);
         }else {
-            return Result.error(MessageConstant.UNKNOWN_ERROR);
+            return Result.error(UserConstant.UNKNOWN_ERROR);
         }
     }
 

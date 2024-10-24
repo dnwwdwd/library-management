@@ -1,23 +1,23 @@
 package fun.cyhgraph.service.serviceImpl;
 
-import fun.cyhgraph.constant.MessageConstant;
+import fun.cyhgraph.constant.UserConstant;
 import fun.cyhgraph.context.BaseContext;
 import fun.cyhgraph.dto.ManagerDTO;
 import fun.cyhgraph.dto.ManagerLoginDTO;
 import fun.cyhgraph.entity.Manager;
+import fun.cyhgraph.exception.UserNotFoundException;
 import fun.cyhgraph.exception.PasswordErrorException;
-import fun.cyhgraph.exception.ManagerNotFoundException;
 import fun.cyhgraph.mapper.ManagerMapper;
 import fun.cyhgraph.service.ManagerService;
+import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 @Service
 public class ManagerServiceImpl implements ManagerService {
 
-    @Autowired
+    @Resource
     private ManagerMapper managerMapper;
 
     /**
@@ -40,13 +40,13 @@ public class ManagerServiceImpl implements ManagerService {
         // 先查数据库，看是否存在该账号
         Manager manager = managerMapper.getByName(name);
         if (manager == null){
-            throw new ManagerNotFoundException(MessageConstant.MANAGER_NOT_FOUND);
+            throw new UserNotFoundException(UserConstant.USER_NOT_FOUND);
         }
         // 再将前端传过来的密码进行MD5加密
         password = DigestUtils.md5DigestAsHex(password.getBytes());
         // 和之前存进数据库的加密的密码进行比对，看看是否一样，不一样要抛异常
         if (!password.equals(manager.getPassword())){
-            throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
+            throw new PasswordErrorException(UserConstant.PASSWORD_ERROR);
         }
         return manager;
     }
@@ -79,7 +79,7 @@ public class ManagerServiceImpl implements ManagerService {
         Manager manager = managerMapper.getById(id);
         // 和之前存进数据库的加密的密码进行比对，看看是否一样，不一样要抛异常
         if (!oldPwd.equals(manager.getPassword())){
-            throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
+            throw new PasswordErrorException(UserConstant.PASSWORD_ERROR);
         }
         // 旧密码正确，将用户名修改，新密码加密后，进行更新
         manager.setName(managerDTO.getName());

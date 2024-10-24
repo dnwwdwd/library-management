@@ -2,74 +2,177 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="generator.mapper.UserMapper">
+<mapper namespace="fun.cyhgraph.mapper.UserMapper">
 
-    <resultMap id="BaseResultMap" type="generator.domain.User">
-            <id property="id" column="id" jdbcType="INTEGER"/>
-            <result property="username" column="username" jdbcType="VARCHAR"/>
-            <result property="password" column="password" jdbcType="VARCHAR"/>
-            <result property="role" column="role" jdbcType="VARCHAR"/>
+    <resultMap id="BaseResultMap" type="fun.cyhgraph.entity.User">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="role" column="role" jdbcType="VARCHAR"/>
+        <result property="categoryId" column="category_id" jdbcType="INTEGER"/>
+        <result property="sex" column="sex" jdbcType="VARCHAR"/>
+        <result property="address" column="address" jdbcType="VARCHAR"/>
+        <result property="phone" column="phone" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="notes" column="notes" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,username,password,
-        role
+        id,name,password,
+        role,category_id,sex,address,phone,email,notes
     </sql>
 
-    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    <select id="getUserById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
         select
-        <include refid="Base_Column_List" />
+        <include refid="Base_Column_List"/>
         from user
-        where  id = #{id,jdbcType=INTEGER} 
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <select id="getUserByName" resultType="fun.cyhgraph.entity.User">
+        select *
+        from user
+        where name = #{name}
     </select>
 
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
-        delete from user
-        where  id = #{id,jdbcType=INTEGER} 
+        delete
+        from user
+        where id = #{id,jdbcType=INTEGER}
     </delete>
-    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="generator.domain.User" useGeneratedKeys="true">
+
+    <delete id="deleteByIds">
+        delete
+        from user
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="fun.cyhgraph.entity.User"
+            useGeneratedKeys="true">
         insert into user
-        ( id,username,password
-        ,role)
-        values (#{id,jdbcType=INTEGER},#{username,jdbcType=VARCHAR},#{password,jdbcType=VARCHAR}
-        ,#{role,jdbcType=VARCHAR})
+        ( id, name, password
+        , role, category_id, sex, address, phone, email, notes)
+        values ( #{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}
+               , 'USER', #{categoryId,jdbcType=INTEGER}, #{sex,jdbcType=VARCHAR}
+               , #{address,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}
+               , #{notes,jdbcType=VARCHAR})
+
     </insert>
-    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="generator.domain.User" useGeneratedKeys="true">
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="fun.cyhgraph.entity.User"
+            useGeneratedKeys="true">
         insert into user
         <trim prefix="(" suffix=")" suffixOverrides=",">
-                <if test="id != null">id,</if>
-                <if test="username != null">username,</if>
-                <if test="password != null">password,</if>
-                <if test="role != null">role,</if>
+            <if test="id != null">id,</if>
+            <if test="name != null">name,</if>
+            <if test="password != null">password,</if>
+            <if test="role != null">role,</if>
+            <if test="categoryId != null">category_id,</if>
+            <if test="sex != null">sex,</if>
+            <if test="address != null">address,</if>
+            <if test="phone != null">phone,</if>
+            <if test="email != null">email,</if>
+            <if test="notes != null">notes</if>
+
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-                <if test="id != null">#{id,jdbcType=INTEGER},</if>
-                <if test="username != null">#{username,jdbcType=VARCHAR},</if>
-                <if test="password != null">#{password,jdbcType=VARCHAR},</if>
-                <if test="role != null">#{role,jdbcType=VARCHAR},</if>
+            <if test="id != null">#{id,jdbcType=INTEGER},</if>
+            <if test="name != null">#{name,jdbcType=VARCHAR},</if>
+            <if test="password != null">#{password,jdbcType=VARCHAR},</if>
+            <if test="role != null">#{role,jdbcType=VARCHAR},</if>
         </trim>
     </insert>
-    <update id="updateByPrimaryKeySelective" parameterType="generator.domain.User">
+    <update id="updateByPrimaryKeySelective" parameterType="fun.cyhgraph.entity.User">
         update user
         <set>
-                <if test="username != null">
-                    username = #{username,jdbcType=VARCHAR},
-                </if>
-                <if test="password != null">
-                    password = #{password,jdbcType=VARCHAR},
-                </if>
-                <if test="role != null">
-                    role = #{role,jdbcType=VARCHAR},
-                </if>
+            <if test="name != null">
+                name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                password = #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="role != null">
+                role = #{role,jdbcType=VARCHAR},
+            </if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="sex != null">sex = #{sex},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="notes != null">notes = #{notes}</if>
         </set>
-        where   id = #{id,jdbcType=INTEGER} 
+        where id = #{id,jdbcType=INTEGER}
     </update>
-    <update id="updateByPrimaryKey" parameterType="generator.domain.User">
+
+    <update id="updateByPrimaryKey" parameterType="fun.cyhgraph.entity.User">
         update user
-        set 
-            username =  #{username,jdbcType=VARCHAR},
-            password =  #{password,jdbcType=VARCHAR},
-            role =  #{role,jdbcType=VARCHAR}
-        where   id = #{id,jdbcType=INTEGER} 
+        set name        = #{name,jdbcType=VARCHAR},
+            password    = #{password,jdbcType=VARCHAR},
+            role        = #{role,jdbcType=VARCHAR},
+            category_id = #{categoryId,jdbcType=INTEGER},
+            sex         = #{sex,jdbcType=VARCHAR},
+            address     = #{address,jdbcType=VARCHAR},
+            phone       = #{phone,jdbcType=VARCHAR},
+            email       = #{email,jdbcType=VARCHAR},
+            notes       = #{notes,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=INTEGER}
     </update>
+
+    <update id="sealUser">
+        update user set role = 'BAN'
+        <where>
+            <if test="id != null">
+                id = #{userId}
+            </if>
+        </where>
+    </update>
+
+    <update id="unsealUser">
+        update user set role = 'USER'
+        <where>
+            <if test="id != null">
+                id = #{userId}
+            </if>
+        </where>
+    </update>
+
+    <update id="sealUsers">
+        update user set role = 'BAN'
+        <where>
+            id in
+            <foreach collection="ids" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </where>
+    </update>
+
+    <update id="unsealUsers">
+        update user set role = 'USER'
+        <where>
+            id in
+            <foreach collection="ids" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </where>
+    </update>
+
+    <select id="pageReader" resultType="fun.cyhgraph.entity.User">
+        select * from user
+        <where>
+            role != 'ADMIN'
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+            <if test="categoryId != null and categoryId != ''">
+                and category_id = #{categoryId}
+            </if>
+        </where>
+    </select>
+
+    <select id="isSealed" resultType="java.lang.String">
+        select role
+        from user
+        where id = #{id}
+    </select>
 </mapper>

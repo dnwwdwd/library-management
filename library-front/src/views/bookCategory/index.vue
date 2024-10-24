@@ -3,6 +3,11 @@ import { reactive, ref } from 'vue'
 import { addBookCategoryAPI, getBookCategoryAPI, deleteBookCategoryAPI } from '@/api/bookCategory'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
+import {useUserStore} from "@/store";
+
+const store = useUserStore();
+
+const isAdmin = store.userInfo?.role === 'ADMIN';
 
 // ------ .d.ts 属性类型接口 ------
 interface BookCategoryDTO {
@@ -176,22 +181,22 @@ const delete_btn = (row: any) => {
       <el-input style="width: 220px; margin: 0 30px" v-model="pageData.name" class="input" placeholder="请输入分类名" />
       <el-input style="width: 220px; margin: 0 30px" v-model="pageData.keywords" class="input" placeholder="请输入关键词" />
       <el-button style="margin: 20px 50px; width:100px" round type="success" @click="init()">查询分类</el-button>
-      <el-button style="margin: 20px 100px; width:100px" type="primary" @click="dialogFormVisible = true">
+      <el-button style="margin: 20px 100px; width:100px" type="primary" @click="dialogFormVisible = true" v-if="isAdmin">
         <el-icon>
           <Plus style="width: 10em; height: 10em; margin-right: 3px" />
         </el-icon>添加分类
       </el-button>
     </div>
     <el-table :data="bookCategoryList">
-      <el-table-column prop="id" label="id" width="100px" />
-      <el-table-column prop="name" label="分类名" width="100px" />
-      <el-table-column prop="keywords" label="关键词" width="200px" />
-      <el-table-column prop="notes" label="备注" width="400px" />
-      <el-table-column label="操作" width="200px">
+      <el-table-column prop="id" label="id" min-width="80" />
+      <el-table-column prop="name" label="分类名" min-width="80" />
+      <el-table-column prop="keywords" label="关键词" min-width="80" />
+      <el-table-column prop="notes" label="备注" min-width="80" />
+      <el-table-column label="操作" min-width="80" v-if="isAdmin">
         <!-- scope 的父组件是 el-table -->
         <template #default="scope">
-          <el-button @click="update_btn(scope.row)" type="primary">修改</el-button>
-          <el-button @click="delete_btn(scope.row)" type="danger">删除</el-button>
+          <el-button @click="update_btn(scope.row)" type="primary" v-if="isAdmin">修改</el-button>
+          <el-button @click="delete_btn(scope.row)" type="danger" v-if="isAdmin">删除</el-button>
         </template>
       </el-table-column>
       <template #empty>

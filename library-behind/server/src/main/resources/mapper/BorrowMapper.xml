@@ -58,6 +58,20 @@
         </where>
     </select>
 
+    <select id="pageMy" resultType="fun.cyhgraph.entity.LendReturn">
+        select * from lend_return
+        <where>
+            r_Id = #{userId}
+            <if test="lendReturnPageDTO.bId != null">
+                and b_id = #{lendReturnPageDTO.bId}
+            </if>
+            <if test="lendReturnPageDTO.notes != null and lendReturnPageDTO.notes != ''">
+                and notes like concat('%', #{lendReturnPageDTO.notes}, '%')
+            </if>
+        </where>
+    </select>
+
+
     <update id="update">
         update lend_return
         <set>

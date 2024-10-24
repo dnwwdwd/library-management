@@ -15,6 +15,20 @@ export const getBorrowPageAPI = (params: any) => {
 }
 
 /**
+ * 分页获取我的所有借还书数据
+ * @param params
+ * @returns
+ */
+export const getMyBorrowPageAPI = (params: any) => {
+  console.log(params)
+  return request({
+    url: '/borrow/page/my',
+    method: 'get',
+    params
+  })
+}
+
+/**
  * 添加借阅记录
  * @param params 
  * @returns 
@@ -22,7 +36,7 @@ export const getBorrowPageAPI = (params: any) => {
 export const addBorrowAPI = (params: any) => {
   console.log(params)
   return request({
-    url: '/borrow',
+    url: '/borrow/add',
     method: 'post',
     data: params
   })

@@ -1,6 +1,6 @@
 <script setup lang="ts" name:="my-register">
 // 导出是命名导出，所以这里导入要加{}
-import { registerAPI } from '@/api/manager'
+import { registerAPI } from '@/api/user'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'

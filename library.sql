@@ -1,6 +1,6 @@
 -- 图书管理系统数据库
-create database library;
-use library;
+create database libraryManagement;
+use libraryManagement;
 
 -- 1、读者种类表
 drop table if exists r_category;
@@ -28,9 +28,6 @@ create table reader(
     create_time datetime not null default now(),
     notes varchar(255) null
 );
--- 添加外键约束关联: 读者和对应的分类
-alter table reader add constraint fk_r_category_id foreign key (category_id)
-    references r_category(id) on update cascade on delete cascade;
 
 
 -- 3、书籍种类表
@@ -59,29 +56,20 @@ create table book(
     status tinyint not null default 0,
     notes varchar(255) null
 );
--- 添加外键约束关联: 书籍和对应的分类
-alter table book add constraint fk_b_category_id foreign key (category_id)
-    references b_category(id) on update cascade on delete cascade;
 
 
 -- 5、借书还书表
 drop table if exists lend_return;
-create table lend_return(
-    id int primary key auto_increment,
-    r_id int not null,
-    b_id int not null,
-    lend_date date not null default (curdate()),
-    return_date date null,
-    status int null default 0 comment '归还状态，0: 出借中  1：正常归还  2：逾期归还  3：丢失无法归还  4：损坏归还  5：其他(备注说明)',
-    notes varchar(255) null
+create table lend_return
+(
+    id          int primary key auto_increment,
+    r_id        int          not null,
+    b_id        int          not null,
+    lend_date   date         not null default (curdate()),
+    return_date date         null,
+    status      int          null     default 0 comment '归还状态，0: 出借中  1：正常归还  2：逾期归还  3：丢失无法归还  4：损坏归还  5：其他(备注说明)',
+    notes       varchar(255) null
 );
--- 添加外键约束关联: 读者和书籍id
-alter table lend_return add constraint fk_r_id foreign key (r_id)
-    references reader(id) on update cascade on delete cascade;
-alter table lend_return add constraint fk_b_id foreign key (b_id)
-    references book(id) on update cascade on delete cascade;
--- return_date可以为null
-alter table lend_return modify return_date date null;
 
 -- 6、管理员表
 drop table if exists manager;
@@ -232,3 +220,13 @@ INSERT INTO reader (name, category_id, sex, w_address, h_address, phone, email, 
 
 
 select count(id) from lend_return WHERE (return_date is null or return_date >= 2024-05-16) and r_id = 207;
+
+
+ALTER TABLE user
+    ADD COLUMN category_id INT NOT NULL COMMENT '读者种类',
+    ADD COLUMN sex TINYINT NOT NULL DEFAULT 1,
+    ADD COLUMN address VARCHAR(255) NOT NULL,
+    ADD COLUMN phone VARCHAR(11) NULL,
+    ADD COLUMN email VARCHAR(64) NULL,
+    ADD COLUMN create_time DATETIME NOT NULL DEFAULT NOW(),
+    ADD COLUMN notes VARCHAR(255) NULL;

@@ -5,11 +5,11 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      component: () => import('../views/layout/index.vue'),
-      redirect: '/home',
+      component: () => import('../views/layout/BasicLayout.vue'),
+      redirect: '/statistics',
       children: [
         {
-          path: '/home',
+          path: '/statistics',
           name: 'home',
           // lazy loading
           component: () => import('../views/home/index.vue')
@@ -70,14 +70,19 @@ const router = createRouter({
           component: () => import('../views/lendReturn/update.vue')
         },
         {
+          path: '/lendReturn/me',
+          name: 'lendReturnMe',
+          component: () => import('../views/bookILended/index.vue')
+        },
+        {
+          path: '/lendReturn/update/me',
+          name: 'lendReturnIUpdate',
+          component: () => import('../views/bookILended/update.vue')
+        },
+        {
           path: '/manager',
           name: 'manager',
           component: () => import('../views/manager/index.vue')
-        },
-        {
-          path: '/test',
-          name: 'test',
-          component: () => import('../views/test/index.vue')
         },
       ]
     },

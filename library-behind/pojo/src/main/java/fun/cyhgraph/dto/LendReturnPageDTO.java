@@ -13,10 +13,14 @@ import java.io.Serializable;
 public class LendReturnPageDTO implements Serializable {
 
     int page;
+
     int pageSize;
+
     @JsonProperty("rId")
     private Integer rId; // 读者名称
+
     @JsonProperty("bId")
     private Integer bId; // 书籍名称
+
     private String notes;
 }

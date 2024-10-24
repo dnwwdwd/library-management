@@ -221,14 +221,14 @@ const deleteBatch = (row?: any) => {
           <!-- 遍历categoryList，找到categoryId对应的name，  !.表示必然存在 -->
           <!-- {{ statusList.find(item => item.id === scope.row.status)!.name }} -->
           <span :style="{ color: getStatusColor(scope.row.status) }">
-            {{ statusList.find(item => item.id === scope.row.status)!.name }}
+            {{ statusList.find(item => item.id === scope.row.status)?.name || '未归还'}}
           </span>
         </template>
       </el-table-column>
       <el-table-column prop="notes" label="备注" />
       <el-table-column label="操作" width="200px">
         <template #default="scope">
-          <el-button @click="update_btn(scope.row)" type="primary">还书</el-button>
+          <el-button @click="update_btn(scope.row)" type="primary" v-if="scope.row.status === 0">还书</el-button>
           <el-button @click="delete_btn(scope.row)" type="danger">删除</el-button>
         </template>
       </el-table-column>

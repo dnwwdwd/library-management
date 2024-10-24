@@ -1,75 +1,99 @@
 <script setup lang="ts" name="layout">
-import {RouterView, useRouter} from 'vue-router'
+import {RouterView, useRouter, useRoute} from 'vue-router'
 import {ElMessageBox, ElMessage} from 'element-plus'
 import {useUserStore} from '@/store'
 
-// ------ data ------
-const userStore = useUserStore()
-const menuList = [
+const userStore = useUserStore();
+const router = useRouter();
+const route = useRoute(); // 用于获取当前路由
+
+// 管理员菜单
+const adminMenuList = [
   {
     title: '数据统计',
-    path: '/admin/statistics',
+    path: '/statistics',
     icon: 'pieChart',
   },
   {
     title: '图书分类',
-    path: '/admin/bookCategory',
+    path: '/bookCategory',
     icon: 'memo',
   },
   {
     title: '图书列表',
-    path: '/admin/book',
+    path: '/book',
     icon: 'collection',
   },
   {
     title: '读者分类',
-    path: '/admin/readerCategory',
+    path: '/readerCategory',
     icon: 'postcard',
   },
   {
     title: '读者列表',
-    path: '/admin/reader',
+    path: '/reader',
     icon: 'user',
   },
   {
     title: '借书还书',
-    path: '/admin/lendReturn',
+    path: '/lendReturn',
     icon: 'reading',
-    children: {
-      0: {
-        subpath: '/admin/lendReturn/add',
+    children: [
+      {
+        subpath: '/lendReturn/add',
         title: '新增借书',
         icon: 'operation',
-        children: null
       },
-      1: {
-        subpath: '/admin/lendReturn',
+      {
+        subpath: '/lendReturn',
         title: '记录展示/还书',
         icon: 'tickets',
-        children: null
       }
-    }
+    ]
   },
-  // {
-  //   title: '测试页面',
-  //   path: '/test',
-  //   icon: 'el-icon-s-order',
-  // },
   {
     title: '个人设置',
     path: '/manager',
     icon: 'setting',
   },
-]
+];
 
-// ------ method ------
-const router = useRouter()
+// 普通用户菜单
+const commonMenuList = [
+  {
+    title: '数据统计',
+    path: '/statistics',
+    icon: 'pieChart',
+  },
+  {
+    title: '图书分类',
+    path: '/bookCategory',
+    icon: 'memo',
+  },
+  {
+    title: '图书列表',
+    path: '/book',
+    icon: 'collection',
+  },
+  {
+    title: '我的借阅',
+    path: '/lendReturn/me',
+    icon: 'user',
+  },
+  {
+    title: '个人设置',
+    path: '/manager',
+    icon: 'setting',
+  },
+];
 
+// 根据用户角色选择菜单
+const menuList = userStore.userInfo?.role === 'ADMIN' ? adminMenuList : commonMenuList;
+
+// 退出登录函数
 const quitFn = () => {
-  // 为了让用户体验更好，来个确认提示框
   ElMessageBox.confirm(
-      '走了，爱是会消失的吗?',
-      '退出登录',
+      '你确定要退出登录吗？',
       {
         confirmButtonText: 'OK',
         cancelButtonText: 'Cancel',
@@ -80,19 +104,17 @@ const quitFn = () => {
         ElMessage({
           type: 'success',
           message: '退出成功',
-        })
-        // 清除用户信息，包括token
-        userStore.userInfo = null
-        console.log(userStore)
-        router.push('/login')
+        });
+        userStore.userInfo = null;
+        router.push('/login');
       })
       .catch(() => {
         ElMessage({
           type: 'info',
           message: '已取消退出',
-        })
-      })
-}
+        });
+      });
+};
 </script>
 
 <template>
@@ -115,27 +137,30 @@ const quitFn = () => {
         </el-dropdown>
       </el-header>
       <el-container class="sidebar">
-        <!-- 左侧导航菜单区域 -->
-        <el-menu default-active="/home" class="el-menu-vertical-demo" background-color="#556677" text-color="#fff"
-                 active-text-color="#ffd04b" unique-opened router>
-          <!-- 加了router模式，就会在激活导航时以 :index 作为path进行路径跳转（nb!不用自己写路由了!） -->
-          <!-- 根据不同情况选择menu-item/submenu进行遍历，所以外层套template遍历，里面组件做判断看是否该次遍历到自己 -->
-          <template v-for="item in menuList">
-            <el-menu-item v-if="!item.children" :index="item.path" :key="item.path">
+        <!-- 侧边导航菜单区域 -->
+        <el-menu
+            :default-active="route.path"
+            class="el-menu-vertical-demo"
+            background-color="#556677"
+            text-color="#fff"
+            active-text-color="#ffd04b"
+            unique-opened
+            router>
+          <!-- 遍历菜单项 -->
+          <template v-for="item in menuList" :key="item.path">
+            <el-menu-item v-if="!item.children" :index="item.path">
               <el-icon>
                 <component :is="item.icon"/>
               </el-icon>
               <span>{{ item.title }}</span>
             </el-menu-item>
-            <el-sub-menu v-else :index="item.path" :key="item.title">
-              <!-- 有子菜单的侧边栏项 -->
+            <el-sub-menu v-else :index="item.path">
               <template #title>
                 <el-icon>
                   <component :is="item.icon"/>
                 </el-icon>
                 <span>{{ item.title }}</span>
               </template>
-              <!-- 该项下的子菜单 -->
               <el-menu-item v-for="obj in item.children" :index="obj.subpath" :key="obj.subpath">
                 <el-icon>
                   <component :is="obj.icon"/>
@@ -150,7 +175,7 @@ const quitFn = () => {
           <el-main>
             <router-view></router-view>
           </el-main>
-          <el-footer>© 2024.5.23 library Tech and Class. All rights reserved.</el-footer>
+          <el-footer>desgined by 赵伟杰</el-footer>
         </el-container>
       </el-container>
     </el-container>
@@ -238,4 +263,3 @@ a:hover {
   align-items: center;
 }
 </style>
-

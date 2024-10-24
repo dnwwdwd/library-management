@@ -1,9 +1,15 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { getBookCategoryAPI } from '@/api/bookCategory'
-import { getBookPageAPI, addBookAPI, updateBookStatusAPI, deleteBooksAPI } from '@/api/book'
-import { useRouter } from 'vue-router';
-import { ElMessage, ElMessageBox, ElTable } from 'element-plus'
+import {reactive, ref} from 'vue'
+import {getBookCategoryAPI} from '@/api/bookCategory'
+import {addBookAPI, deleteBooksAPI, getBookPageAPI, updateBookStatusAPI} from '@/api/book'
+import {useRouter} from 'vue-router';
+import {ElMessage, ElMessageBox, ElTable} from 'element-plus'
+import {useUserStore} from "@/store";
+import {addBorrowAPI} from "@/api/lendReturn";
+
+const store = useUserStore();
+
+const isAdmin = store.userInfo?.role === 'ADMIN';
 
 // ------ .d.ts 属性类型接口 ------
 // 接收到不在接口中定义的属性的数据，ts会报错，但是类型推断错误不会妨碍接收，控制台还是能打印的
@@ -21,6 +27,7 @@ interface Book {
   status: number
   notes: string
 }
+
 interface BookDTO {
   name: string
   categoryId: number
@@ -32,6 +39,7 @@ interface BookDTO {
   keywords: string
   notes: string
 }
+
 interface Category {
   id: number
   name: string
@@ -40,6 +48,9 @@ interface Category {
 // ------ 配置 ------
 const dialogFormVisible = ref(false)
 const formLabelWidth = '140px'
+
+const showDialogVisible = ref(false);
+const bId = ref();
 
 // ------ 数据 ------
 // dialog中的表单信息
@@ -53,7 +64,14 @@ const form = reactive<BookDTO>({
   pageNumber: 0,
   keywords: '',
   notes: ''
-})
+});
+
+const borrowForm = ref({
+  bId: 0,
+  rId: 0,
+  lendDate: '',
+  status: 0,
+});
 // 当前页的书籍列表
 const bookList = ref<Book[]>([])
 // 书籍id对应的分类列表，即categoryId字段不能只展示id值，应该根据id查询到对应的分类名进行回显
@@ -87,38 +105,64 @@ const multiSelection = ref<Book[]>([])
 // 表单校验
 const rules = {
   name: [
-    { required: true, trigger: 'blur', message: '不能为空' },
+    {required: true, trigger: 'blur', message: '不能为空'},
   ],
   categoryId: [
-    { required: true, trigger: 'blur', message: '不能为空' },
+    {required: true, trigger: 'blur', message: '不能为空'},
   ],
   author: [
-    { required: true, trigger: 'blur', message: '不能为空' },
+    {required: true, trigger: 'blur', message: '不能为空'},
   ],
   press: [
-    { required: true, trigger: 'blur', message: '不能为空' },
+    {required: true, trigger: 'blur', message: '不能为空'},
   ],
   publishDate: [
-    { required: true, trigger: 'blur', message: '不能为空' },
+    {required: true, trigger: 'blur', message: '不能为空'},
   ],
   price: [
-    { required: true, trigger: 'blur', message: '不能为空' },
+    {required: true, trigger: 'blur', message: '不能为空'},
   ],
   pageNumber: [
-    { required: true, trigger: 'blur', message: '不能为空' },
+    {required: true, trigger: 'blur', message: '不能为空'},
   ],
   keywords: [
-    { required: true, trigger: 'blur', message: '不能为空' },
+    {required: true, trigger: 'blur', message: '不能为空'},
   ],
   notes: [
-    { required: true, trigger: 'blur', message: '不能为空' },
+    {required: true, trigger: 'blur', message: '不能为空'},
   ]
 }
+
+// 根据状态值返回对应的颜色
+const getStatusColor = (status: number) => {
+  // 0：出借中  1：正常归还  2：逾期归还  3：丢失无法归还  4：损坏归还  5：其他(见备注)
+  switch (status) {
+    case 0:
+      return '#888888'
+    case 1:
+      return '#66cc88'
+    case 2:
+      return '#bbbb00'
+    case 3:
+      return '#ff0000'
+    case 4:
+      return '#ee8800'
+    case 5:
+      return '#0088ff'
+    default:
+      return 'black'
+  }
+};
+
+const statusList = [
+  {id: 0, name: '可借阅'},
+  {id: 1, name: '出借中'},
+]
 
 // ------ 方法 ------
 // 页面初始化: 获取书籍分类列表
 const init = async () => {
-  const { data: res_category } = await getBookCategoryAPI({ page: 1, pageSize: 100 })
+  const {data: res_category} = await getBookCategoryAPI({page: 1, pageSize: 100})
   console.log('分类列表')
   console.log(res_category.data)
   categoryList.value = res_category.data.records
@@ -126,7 +170,7 @@ const init = async () => {
 }
 // 刷新页面的分页数据
 const showPageList = async () => {
-  const { data: res } = await getBookPageAPI(pageData)
+  const {data: res} = await getBookPageAPI(pageData)
   console.log('书籍列表')
   console.log(res.data)
   bookList.value = res.data.records
@@ -157,10 +201,10 @@ const add_btn = async () => {
       const date = new Date(form.publishDate)
       // 将日期转换为年月日格式(不能换行，空格和\n会被算进去...)
       form.publishDate = date.getFullYear() + '-' +
-        String(date.getMonth() + 1).padStart(2, '0') + '-' +
-        String(date.getDate()).padStart(2, '0')
+          String(date.getMonth() + 1).padStart(2, '0') + '-' +
+          String(date.getDate()).padStart(2, '0')
       console.log('要提交的表单信息', form)
-      const { data: res } = await addBookAPI(form)
+      const {data: res} = await addBookAPI(form)
       if (res.code == 1) return false
       console.log(res)
       dialogFormVisible.value = false
@@ -221,86 +265,129 @@ const change_btn = async (row: any) => {
 // 删除书籍
 const delete_btn = async (row: any) => {
   ElMessageBox.confirm(
-    '是否删除该书籍？',
-    'Warning',
-    {
-      confirmButtonText: 'OK',
-      cancelButtonText: 'Cancel',
-      type: 'warning',
-    }
+      '是否删除该书籍？',
+      'Warning',
+      {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }
   )
-    .then(async () => {
-      console.log('要删除的行数据')
-      console.log(row)
-      await deleteBooksAPI(row.id)
-      // 删除后刷新页面，更新数据
-      showPageList()
-      ElMessage({
-        type: 'success',
-        message: '删除成功',
+      .then(async () => {
+        console.log('要删除的行数据')
+        console.log(row)
+        await deleteBooksAPI(row.id)
+        // 删除后刷新页面，更新数据
+        showPageList()
+        ElMessage({
+          type: 'success',
+          message: '删除成功',
+        })
       })
-    })
-    .catch(() => {
-      ElMessage({
-        type: 'info',
-        message: '取消删除',
+      .catch(() => {
+        ElMessage({
+          type: 'info',
+          message: '取消删除',
+        })
       })
-    })
 }
+
 // 批量删除书籍
 const deleteBatch = (row?: any) => {
   console.log('要删除的行数据')
   console.log(row)
   ElMessageBox.confirm(
-    '是否批量删除选中的书籍？',
-    'Warning',
-    {
-      confirmButtonText: 'OK',
-      cancelButtonText: 'Cancel',
-      type: 'warning',
-    }
+      '是否批量删除选中的书籍？',
+      'Warning',
+      {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }
   )
-    .then(async () => {
-      // 1. 没传入行数据，批量删除
-      if (row == undefined) {
-        console.log(multiSelection.value)
-        if (multiSelection.value.length == 0) {
-          ElMessage({
-            type: 'warning',
-            message: '请先选择要删除的书籍',
+      .then(async () => {
+        // 1. 没传入行数据，批量删除
+        if (row == undefined) {
+          console.log(multiSelection.value)
+          if (multiSelection.value.length == 0) {
+            ElMessage({
+              type: 'warning',
+              message: '请先选择要删除的书籍',
+            })
+            return
+          }
+          // 拿到当前 multiSelection.value 的所有id，然后调用批量删除接口
+          let ids: any = []
+          multiSelection.value.map(item => {
+            ids.push(item.id)
           })
-          return
+          ids = ids.join(',')
+          console.log('ids', ids)
+          let res = await deleteBooksAPI(ids)
+          if (res.data.code != 0) return
         }
-        // 拿到当前 multiSelection.value 的所有id，然后调用批量删除接口
-        let ids: any = []
-        multiSelection.value.map(item => {
-          ids.push(item.id)
+        // 2. 传入行数据，单个删除
+        else {
+          console.log('id包装装成数组，然后调用批量删除接口')
+          console.log(row.id)
+          let res = await deleteBooksAPI(row.id)
+          if (res.data.code != 0) return
+        }
+        // 删除后刷新页面，更新数据
+        showPageList()
+        ElMessage({
+          type: 'success',
+          message: '删除成功',
         })
-        ids = ids.join(',')
-        console.log('ids', ids)
-        let res = await deleteBooksAPI(ids)
-        if (res.data.code != 0) return
-      }
-      // 2. 传入行数据，单个删除
-      else {
-        console.log('id包装成数组，然后调用批量删除接口')
-        console.log(row.id)
-        let res = await deleteBooksAPI(row.id)
-        if (res.data.code != 0) return
-      }
-      // 删除后刷新页面，更新数据
-      showPageList()
-      ElMessage({
-        type: 'success',
-        message: '删除成功',
       })
-    })
-    .catch(() => {
-      ElMessage({
-        type: 'info',
-        message: '取消删除',
+      .catch(() => {
+        ElMessage({
+          type: 'info',
+          message: '取消删除',
+        })
       })
-    })
+};
+
+const disabledDateLend = (time: Date) => {
+  return time.getTime() > Date.now()
+}
+
+const show_borrow_modal = async (row: any) => {
+  showDialogVisible.value = true;
+  borrowForm.value.bId = row.id;
+  borrowForm.value.rId = store.userInfo?.id;
+};
+
+const add_borrow = async () => {
+  ElMessageBox.confirm(
+      '是否借阅该书籍？',
+      'Warning',
+      {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }
+  )
+      .then(async () => {
+        let date = new Date(borrowForm.value.lendDate)
+        borrowForm.value.lendDate = date.getFullYear() + '-' +
+            String(date.getMonth() + 1).padStart(2, '0') + '-' +
+            String(date.getDate()).padStart(2, '0')
+        await addBorrowAPI(borrowForm.value)
+        showDialogVisible.value = false
+        // 删除后刷新页面，更新数据
+        showPageList()
+        ElMessage({
+          type: 'success',
+          message: '借阅成功',
+        });
+      })
+      .catch(() => {
+        ElMessage({
+          type: 'info',
+          message: '取消借阅',
+        })
+      })
 }
 </script>
 
@@ -308,33 +395,33 @@ const deleteBatch = (row?: any) => {
   <el-dialog v-model="dialogFormVisible" title="添加图书" class="my-info-dialog">
     <el-form :model="form" :rules="rules" ref="isValidForm">
       <el-form-item label="书名" :label-width="formLabelWidth" prop="name">
-        <el-input v-model="form.name" autocomplete="off" />
+        <el-input v-model="form.name" autocomplete="off"/>
       </el-form-item>
       <el-form-item label="分类" :label-width="formLabelWidth" prop="categoryId">
         <el-select clearable v-model="form.categoryId" placeholder="选择分类类型">
-          <el-option v-for="item in categoryList" :key="item.id" :label="item.name" :value="item.id" />
+          <el-option v-for="item in categoryList" :key="item.id" :label="item.name" :value="item.id"/>
         </el-select>
       </el-form-item>
       <el-form-item label="作者" :label-width="formLabelWidth" prop="author">
-        <el-input v-model="form.author" autocomplete="off" />
+        <el-input v-model="form.author" autocomplete="off"/>
       </el-form-item>
       <el-form-item label="出版社" :label-width="formLabelWidth" prop="press">
-        <el-input v-model="form.press" autocomplete="off" />
+        <el-input v-model="form.press" autocomplete="off"/>
       </el-form-item>
       <el-form-item label="出版日期" :label-width="formLabelWidth" prop="publishDate">
-        <el-date-picker v-model="form.publishDate" type="date" placeholder="请选择出版日期" style="width: 100%" />
+        <el-date-picker v-model="form.publishDate" type="date" placeholder="请选择出版日期" style="width: 100%"/>
       </el-form-item>
       <el-form-item label="价格" :label-width="formLabelWidth" prop="price">
-        <el-input v-model="form.price" autocomplete="off" />
+        <el-input v-model="form.price" autocomplete="off"/>
       </el-form-item>
       <el-form-item label="页码数" :label-width="formLabelWidth" prop="pageNumber">
-        <el-input v-model="form.pageNumber" autocomplete="off" />
+        <el-input v-model="form.pageNumber" autocomplete="off"/>
       </el-form-item>
       <el-form-item label="关键词" :label-width="formLabelWidth" prop="keywords">
-        <el-input v-model="form.keywords" autocomplete="off" />
+        <el-input v-model="form.keywords" autocomplete="off"/>
       </el-form-item>
       <el-form-item label="备注" :label-width="formLabelWidth" prop="notes">
-        <el-input v-model="form.notes" autocomplete="off" />
+        <el-input v-model="form.notes" autocomplete="off"/>
       </el-form-item>
     </el-form>
     <template #footer>
@@ -347,62 +434,99 @@ const deleteBatch = (row?: any) => {
 
   <el-card class="my-card">
     <div class="horizontal">
-      <el-input style="width: 160px; margin: 20px" v-model="pageData.name" class="input" placeholder="请输入书名" />
+      <el-input style="width: 160px; margin: 20px" v-model="pageData.name" class="input" placeholder="请输入书名"/>
       <el-select style="width: 160px; margin: 20px" clearable v-model="pageData.categoryId" placeholder="选择分类类型">
-        <el-option v-for="item in categoryList" :key="item.id" :label="item.name" :value="item.id" />
+        <el-option v-for="item in categoryList" :key="item.id" :label="item.name" :value="item.id"/>
       </el-select>
       <el-select clearable v-model="pageData.status" placeholder="选择书籍状态" style="width: 160px; margin: 20px">
-        <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
+        <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value"/>
       </el-select>
       <el-button style="margin: 20px 30px; width:100px" round type="success" @click="search_btn()">查询书籍</el-button>
-      <el-button style="margin: 20px 20px; width:100px" round type="danger" @click="deleteBatch()">批量删除</el-button>
-      <el-button style="margin: 20px 20px; width:100px" type="primary" @click="dialogFormVisible = true">
+      <el-button style="margin: 20px 20px; width:100px" round type="danger" @click="deleteBatch()" v-if="isAdmin">
+        批量删除
+      </el-button>
+      <el-button style="margin: 20px 20px; width:100px" type="primary" @click="dialogFormVisible = true" v-if="isAdmin">
         <el-icon>
-          <Plus style="width: 10em; height: 10em; margin-right: 3px" />
-        </el-icon>新增书籍
+          <Plus style="width: 10em; height: 10em; margin-right: 3px"/>
+        </el-icon>
+        新增书籍
       </el-button>
     </div>
 
+    <el-dialog v-model="showDialogVisible" title="添加图书分类" class="my-info-dialog">
+      <el-form :model="borrowForm" :rules="rules" ref="isValidForm">
+        <el-form-item label="书籍id" :label-width="formLabelWidth" prop="bId">
+          <el-input v-model="borrowForm.bId" autocomplete="off"/>
+        </el-form-item>
+        <el-form-item label="读者id" :label-width="formLabelWidth" prop="rId">
+          <el-input v-model="borrowForm.rId" autocomplete="off"/>
+        </el-form-item>
+        <el-form-item label="借书日期" :label-width="formLabelWidth" prop="lendDate">
+          <el-date-picker v-model="borrowForm.lendDate" type="date" :disabled-date="disabledDateLend"
+                          placeholder="请选择借书日期"
+                          style="width: 100%"/>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button plain type="info" @click="showDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="add_borrow()">确认</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
     <el-table ref="multiTableRef" :data="bookList" stripe border @selection-change="handleSelectionChange"
-      style="width: 100%">
-      <el-table-column type="selection" width="55" />
-      <el-table-column prop="id" label="书号" />
-      <el-table-column prop="name" label="书名" width="100px" />
+              style="width: 100%">
+      <el-table-column type="selection" width="55" v-if="isAdmin"/>
+      <el-table-column prop="id" label="书号"/>
+      <el-table-column prop="name" label="书名" width="100px"/>
       <el-table-column prop="categoryId" label="所属分类" width="90">
         <template #default="scope">
           <!-- 遍历categoryList，找到categoryId对应的name，  !.表示必然存在id，因为添加时就是根据已有id添加的 -->
-          {{ categoryList.find(item => item.id === scope.row.categoryId)!.name }}
+          {{ categoryList.find(item => item.id === scope.row.categoryId)?.name || '未知分类' }}
         </template>
       </el-table-column>
-      <el-table-column prop="author" label="作者" />
-      <el-table-column prop="press" label="出版社" width="150" />
-      <el-table-column prop="publishDate" label="出版年" width="130px" />
-      <el-table-column prop="price" label="价格" />
-      <el-table-column prop="pageNumber" label="页码数" />
-      <el-table-column prop="keywords" label="关键词" />
-      <el-table-column prop="createTime" label="创建时间" width="150px" />
-      <el-table-column prop="status" label="状态" />
-      <el-table-column prop="notes" label="备注" width="200px" />
+      <el-table-column prop="author" label="作者"/>
+      <el-table-column prop="press" label="出版社" width="150"/>
+      <el-table-column prop="publishDate" label="出版年" width="130px"/>
+      <el-table-column prop="price" label="价格"/>
+      <el-table-column prop="pageNumber" label="页码数"/>
+      <el-table-column prop="keywords" label="关键词"/>
+      <el-table-column prop="createTime" label="创建时间" width="150px"/>
+      <el-table-column prop="status" label="状态">
+        <template #default="scope">
+          <span :style="{ color: getStatusColor(scope.row.status) }">
+            {{ statusList.find(item => item.id === scope.row.status)?.name }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="notes" label="备注" width="200px"/>
       <el-table-column label="操作" width="200px" fixed="right">
         <!-- scope 的父组件是 el-table -->
         <template #default="scope">
-          <el-button @click="update_btn(scope.row)" type="primary">修改</el-button>
+          <el-button @click="update_btn(scope.row)" type="primary" v-if="isAdmin">修改</el-button>
           <!-- <el-button @click="change_btn(scope.row)" type="primary">
             {{ scope.row.status === 1 ? '归还' : '借出' }}</el-button> -->
-          <el-button @click="delete_btn(scope.row)" type="danger">删除</el-button>
+          <el-button @click="delete_btn(scope.row)" type="danger" v-if="isAdmin">删除</el-button>
+          <el-button @click="show_borrow_modal(scope.row)" type="primary" v-if="!isAdmin && scope.row.status === 0">
+            借书
+          </el-button>
+          <el-button @click="ElMessage({type: 'success', message: '图书已被借阅，暂不可借'})" type="warning" v-if="!isAdmin && scope.row.status !== 0">出借中
+          </el-button>
         </template>
       </el-table-column>
       <template #empty>
-        <el-empty description=" 没有数据" />
+        <el-empty description=" 没有数据"/>
       </template>
     </el-table>
     <!-- element ui 官方推荐使用 v-model 双向绑定 而不是使用事件监听 -->
     <!-- 但是为了监听后还要调用相关函数，看来只能用事件了... -->
     <!-- 有没有办法让v-model的值发生改变时自动触发更新函数？ -->
     <el-pagination class="pagination" background layout="total, sizes, prev, pager, next, jumper" :total="total"
-      :page-sizes="[2, 4, 6, 8]" v-model:current-page="pageData.page" v-model:page-size="pageData.pageSize"
-      @current-change="handleCurrentChange" @size-change="handleSizeChange" />
+                   :page-sizes="[2, 4, 6, 8]" v-model:current-page="pageData.page" v-model:page-size="pageData.pageSize"
+                   @current-change="handleCurrentChange" @size-change="handleSizeChange"/>
   </el-card>
+
 </template>
 
 <style lang="less" scoped>
@@ -422,7 +546,8 @@ const deleteBatch = (row?: any) => {
   width: 600px;
   border-radius: 10px;
 }
-/* 
+
+/*
 .el-form {
   display: flex;
   flex-direction: column;

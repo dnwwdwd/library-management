@@ -3,7 +3,7 @@ import { reactive, ref } from 'vue'
 import { getBookCategoryAPI } from '@/api/bookCategory'
 import { getReaderCategoryAPI } from '@/api/readerCategory'
 import { getBookByIdAPI } from '@/api/book'
-import { getReaderByIdAPI } from '@/api/reader'
+import { getReaderByIdAPI } from '@/api/user'
 import { getBorrowByIdAPI, updateBorrowAPI } from '@/api/lendReturn'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -359,7 +359,7 @@ const cancel = () => {
 
     <el-table :data="[selectedReader]" highlight-current-row stripe border style="width: 90%; height: 120px;">
       <el-table-column prop="id" label="读者号" width="80px" />
-      <el-table-column prop="name" label="姓名" />
+      <el-table-column prop="name" label="账号" />
       <el-table-column prop="categoryId" label="所属分类">
         <template #default="scope">
           <span v-if="readerCategoryList.length > 0">
@@ -375,8 +375,7 @@ const cancel = () => {
           {{ scope.row.sex === 1 ? '男' : '女' }}
         </template>
       </el-table-column>
-      <el-table-column prop="wAddress" label="工作单位" />
-      <el-table-column prop="hAddress" label="家庭住址" />
+      <el-table-column prop="address" label="家庭住址" />
       <el-table-column prop="phone" label="电话" />
       <el-table-column prop="email" label="邮箱" />
       <el-table-column prop="notes" label="备注" />
@@ -424,7 +423,7 @@ const cancel = () => {
       <el-table :data="readerList" highlight-current-row stripe border @current-change="singleReaderChange"
         style="width: 90%; height: 400px;">
         <el-table-column prop="id" label="读者号" />
-        <el-table-column prop="name" label="姓名" />
+        <el-table-column prop="name" label="账号" />
         <el-table-column prop="categoryId" label="所属分类">
           <template #default="scope">
             <span v-if="readerCategoryList.length > 0">

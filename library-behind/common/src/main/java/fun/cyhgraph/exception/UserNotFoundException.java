@@ -1,10 +1,10 @@
 package fun.cyhgraph.exception;
 
-public class ManagerNotFoundException extends BaseException{
+public class UserNotFoundException extends BaseException{
 
-    public ManagerNotFoundException(){}
+    public UserNotFoundException(){}
 
-    public ManagerNotFoundException(String msg){
+    public UserNotFoundException(String msg){
         super(msg);
     }
 }

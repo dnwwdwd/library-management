@@ -2,21 +2,17 @@ package fun.cyhgraph.service.serviceImpl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import fun.cyhgraph.constant.MessageConstant;
+import fun.cyhgraph.constant.UserConstant;
+import fun.cyhgraph.context.BaseContext;
 import fun.cyhgraph.dto.LendReturnDTO;
 import fun.cyhgraph.dto.LendReturnPageDTO;
-import fun.cyhgraph.entity.Book;
-import fun.cyhgraph.entity.LendReturn;
-import fun.cyhgraph.entity.Reader;
-import fun.cyhgraph.entity.ReaderCategory;
+import fun.cyhgraph.entity.*;
 import fun.cyhgraph.exception.BorrowMaxException;
 import fun.cyhgraph.exception.BorrowTooLongException;
-import fun.cyhgraph.mapper.BookMapper;
-import fun.cyhgraph.mapper.BorrowMapper;
-import fun.cyhgraph.mapper.ReaderCategoryMapper;
-import fun.cyhgraph.mapper.ReaderMapper;
+import fun.cyhgraph.mapper.*;
 import fun.cyhgraph.result.PageResult;
 import fun.cyhgraph.service.BorrowService;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +33,9 @@ public class BorrowServiceImpl implements BorrowService {
     private BookMapper bookMapper;
     @Autowired
     private ReaderCategoryMapper readerCategoryMapper;
-    @Autowired
-    private ReaderMapper readerMapper;
+
+    @Resource
+    private UserMapper userMapper;
 
     /**
      * 新增借还书记录
@@ -48,12 +45,13 @@ public class BorrowServiceImpl implements BorrowService {
     public void addBorrow(LendReturnDTO lendReturnDTO) {
         LendReturn lendReturn = new LendReturn();
         BeanUtils.copyProperties(lendReturnDTO, lendReturn);
-        Reader reader = readerMapper.getById(lendReturn.getRId());
+        Integer rId = lendReturn.getRId();
+        User user = userMapper.getUserById(rId);
         // 读者种类
-        ReaderCategory readerCategory = readerCategoryMapper.getById(reader.getCategoryId());
+        ReaderCategory readerCategory = readerCategoryMapper.getById(user.getCategoryId());
         // 1、如果超过借书有效期，要抛异常
         if (lendReturn.getLendDate().isAfter(readerCategory.getEffectPeriod())){
-            throw new BorrowTooLongException(MessageConstant.BORROW_OUT_OF_EFFECT_PERIOD);
+            throw new BorrowTooLongException(UserConstant.BORROW_OUT_OF_EFFECT_PERIOD);
         }
         // 2、借书前要看当前借书人可借数量有没有达到上限，达到就抛异常给前端
         // 2.1 拿到这个读者当前已借但未还的书本数 return_date = null || return_date > 当前书本的lend_date
@@ -64,7 +62,7 @@ public class BorrowServiceImpl implements BorrowService {
         log.info("--------------------查询这种读者可借书本上限：{}", maxBooks);
         // 2.3 比较，达到就抛异常，表示已达上限
         if (amount >= maxBooks) {
-            throw new BorrowMaxException(MessageConstant.BORROW_MAX);
+            throw new BorrowMaxException(UserConstant.BORROW_MAX);
         }
         // 3、借书需要将对应书籍的状态设置为1，表示已借出
         // 3.1 先获取对应借出的书籍
@@ -107,9 +105,9 @@ public class BorrowServiceImpl implements BorrowService {
         LendReturn lendReturn = new LendReturn();
         BeanUtils.copyProperties(lendReturnDTO, lendReturn);
         // 1、还书前要看读者借书时长是否过长
-        Reader reader = readerMapper.getById(lendReturn.getRId());
+        User user = userMapper.getUserById(lendReturn.getRId());
         // 读者种类
-        ReaderCategory readerCategory = readerCategoryMapper.getById(reader.getCategoryId());
+        ReaderCategory readerCategory = readerCategoryMapper.getById(user.getCategoryId());
         // 1.1 拿到当前种类读者最大可借天数
         Integer maxDays = readerCategory.getLendPeriod();
         // 1.2 还书日期 - 借书日期，看看借书天数（没设置还书日期就不用判断） 2：逾期归还不用判断
@@ -119,9 +117,9 @@ public class BorrowServiceImpl implements BorrowService {
             log.info("借书天数{}", lendDays);
             log.info("最大借书天数{}", maxDays);
             if (lendDays >= maxDays) {
-                throw new BorrowTooLongException(MessageConstant.BORROW_TOO_LONG);
+                throw new BorrowTooLongException(UserConstant.BORROW_TOO_LONG);
             } else if (lendReturn.getReturnDate().isAfter(readerCategory.getEffectPeriod())){
-                throw new BorrowTooLongException(MessageConstant.BORROW_OUT_OF_EFFECT_PERIOD);
+                throw new BorrowTooLongException(UserConstant.BORROW_OUT_OF_EFFECT_PERIOD);
             }
         }
         // 先根据这条记录查到对应的书籍信息
@@ -154,6 +152,14 @@ public class BorrowServiceImpl implements BorrowService {
         // 再批量删除记录还有书籍
         borrowMapper.deleteBatch(ids);
         bookMapper.deleteBatch(bIds);
+    }
+
+    @Override
+    public PageResult pageMy(LendReturnPageDTO lendReturnPageDTO) {
+        PageHelper.startPage(lendReturnPageDTO.getPage(), lendReturnPageDTO.getPageSize());
+        int userId = BaseContext.getCurrentId();
+        Page<LendReturn> lendReturnPage = borrowMapper.pageMy(lendReturnPageDTO, userId);
+        return new PageResult(lendReturnPage.getTotal(), lendReturnPage.getResult());
     }
 
 }

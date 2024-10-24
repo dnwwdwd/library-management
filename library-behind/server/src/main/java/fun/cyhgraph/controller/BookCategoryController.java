@@ -1,6 +1,5 @@
 package fun.cyhgraph.controller;
 
-import com.github.pagehelper.Page;
 import fun.cyhgraph.dto.BookCatePageDTO;
 import fun.cyhgraph.dto.BookCategoryDTO;
 import fun.cyhgraph.entity.BookCategory;
@@ -8,7 +7,6 @@ import fun.cyhgraph.result.PageResult;
 import fun.cyhgraph.result.Result;
 import fun.cyhgraph.service.BookCategoryService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
