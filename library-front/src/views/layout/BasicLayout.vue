@@ -1,49 +1,49 @@
 <script setup lang="ts" name="layout">
-import { RouterView, useRouter } from 'vue-router'
-import { ElMessageBox, ElMessage } from 'element-plus'
-import { useManagerStore } from '@/store'
+import {RouterView, useRouter} from 'vue-router'
+import {ElMessageBox, ElMessage} from 'element-plus'
+import {useUserStore} from '@/store'
 
 // ------ data ------
-const managerStore = useManagerStore()
+const userStore = useUserStore()
 const menuList = [
   {
     title: '数据统计',
-    path: '/home',
+    path: '/admin/statistics',
     icon: 'pieChart',
   },
   {
     title: '图书分类',
-    path: '/bookCategory',
+    path: '/admin/bookCategory',
     icon: 'memo',
   },
   {
     title: '图书列表',
-    path: '/book',
+    path: '/admin/book',
     icon: 'collection',
   },
   {
     title: '读者分类',
-    path: '/readerCategory',
+    path: '/admin/readerCategory',
     icon: 'postcard',
   },
   {
     title: '读者列表',
-    path: '/reader',
+    path: '/admin/reader',
     icon: 'user',
   },
   {
     title: '借书还书',
-    path: '/lendReturn',
+    path: '/admin/lendReturn',
     icon: 'reading',
     children: {
       0: {
-        subpath: '/lendReturn/add',
+        subpath: '/admin/lendReturn/add',
         title: '新增借书',
         icon: 'operation',
         children: null
       },
       1: {
-        subpath: '/lendReturn',
+        subpath: '/admin/lendReturn',
         title: '记录展示/还书',
         icon: 'tickets',
         children: null
@@ -68,30 +68,30 @@ const router = useRouter()
 const quitFn = () => {
   // 为了让用户体验更好，来个确认提示框
   ElMessageBox.confirm(
-    '走了，爱是会消失的吗?',
-    '退出登录',
-    {
-      confirmButtonText: 'OK',
-      cancelButtonText: 'Cancel',
-      type: 'warning',
-    }
+      '走了，爱是会消失的吗?',
+      '退出登录',
+      {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }
   )
-    .then(() => {
-      ElMessage({
-        type: 'success',
-        message: '退出成功',
+      .then(() => {
+        ElMessage({
+          type: 'success',
+          message: '退出成功',
+        })
+        // 清除用户信息，包括token
+        userStore.userInfo = null
+        console.log(userStore)
+        router.push('/login')
       })
-      // 清除用户信息，包括token
-      managerStore.managerInfo = null
-      console.log(managerStore)
-      router.push('/login')
-    })
-    .catch(() => {
-      ElMessage({
-        type: 'info',
-        message: '已取消退出',
+      .catch(() => {
+        ElMessage({
+          type: 'info',
+          message: '已取消退出',
+        })
       })
-    })
 }
 </script>
 
@@ -99,11 +99,13 @@ const quitFn = () => {
   <div class="common-layout">
     <el-container>
       <el-header>
-        <h1 class="h1">图 书 管 理 系 统</h1>
+        <h1 class="h1">基于Vue+Spring Boot的图书管理系统网站设计</h1>
         <el-dropdown>
           <el-button type="primary">
-            {{ managerStore.managerInfo ? managerStore.managerInfo.name : '未登录' }}
-            <el-icon class="el-icon--right"><arrow-down /></el-icon>
+            {{ userStore.userInfo ? userStore.userInfo.name : '未登录' }}
+            <el-icon class="el-icon--right">
+              <arrow-down/>
+            </el-icon>
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
@@ -115,13 +117,13 @@ const quitFn = () => {
       <el-container class="sidebar">
         <!-- 左侧导航菜单区域 -->
         <el-menu default-active="/home" class="el-menu-vertical-demo" background-color="#556677" text-color="#fff"
-          active-text-color="#ffd04b" unique-opened router>
+                 active-text-color="#ffd04b" unique-opened router>
           <!-- 加了router模式，就会在激活导航时以 :index 作为path进行路径跳转（nb!不用自己写路由了!） -->
           <!-- 根据不同情况选择menu-item/submenu进行遍历，所以外层套template遍历，里面组件做判断看是否该次遍历到自己 -->
           <template v-for="item in menuList">
             <el-menu-item v-if="!item.children" :index="item.path" :key="item.path">
               <el-icon>
-                <component :is="item.icon" />
+                <component :is="item.icon"/>
               </el-icon>
               <span>{{ item.title }}</span>
             </el-menu-item>
@@ -129,14 +131,14 @@ const quitFn = () => {
               <!-- 有子菜单的侧边栏项 -->
               <template #title>
                 <el-icon>
-                  <component :is="item.icon" />
+                  <component :is="item.icon"/>
                 </el-icon>
                 <span>{{ item.title }}</span>
               </template>
               <!-- 该项下的子菜单 -->
               <el-menu-item v-for="obj in item.children" :index="obj.subpath" :key="obj.subpath">
                 <el-icon>
-                  <component :is="obj.icon" />
+                  <component :is="obj.icon"/>
                 </el-icon>
                 <span>{{ obj.title }}</span>
               </el-menu-item>
